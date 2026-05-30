@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compatibility Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141416;
+    --surface2: #1c1c1f;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0ede8;
+    --text-muted: rgba(240,237,232,0.45);
+    --text-dim: rgba(240,237,232,0.22);
+    --accent: #c9a96e;
+    --accent-soft: rgba(201,169,110,0.12);
+    --accent-glow: rgba(201,169,110,0.25);
+    --danger: #e07070;
+    --success: #7ec8a4;
+    --card-bg: #18181b;
+    --card-border: rgba(255,255,255,0.06);
+    --progress-track: rgba(255,255,255,0.06);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #faf8f4;
+      --surface: #f4f1ec;
+      --surface2: #ede9e1;
+      --border: rgba(0,0,0,0.07);
+      --text: #1a1714;
+      --text-muted: rgba(26,23,20,0.5);
+      --text-dim: rgba(26,23,20,0.25);
+      --accent: #9a6f2e;
+      --accent-soft: rgba(154,111,46,0.1);
+      --accent-glow: rgba(154,111,46,0.2);
+      --card-bg: #ffffff;
+      --card-border: rgba(0,0,0,0.06);
+      --progress-track: rgba(0,0,0,0.07);
+    }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 20%, rgba(201,169,110,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(201,169,110,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Wrapper ── */
+  .quiz-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* ── Header Bar ── */
+  .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding: 0 2px;
+  }
+
+  .brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .question-counter {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    margin-bottom: 40px;
+  }
+
+  .progress-track {
+    height: 2px;
+    background: var(--progress-track);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 44px 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+  }
+
+  /* ── Question ── */
+  .question-section {
+    margin-bottom: 36px;
+  }
+
+  .question-tag {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .question-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.45rem, 4vw, 1.85rem);
+    font-weight: 300;
+    line-height: 1.35;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Options ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 300;
+    text-align: left;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent-soft);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .option-btn:hover {
+    border-color: rgba(201,169,110,0.3);
+    transform: translateY(-1px);
+  }
+
+  .option-btn:hover::before { opacity: 1; }
+
+  .option-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .option-btn.selected .option-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .option-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .option-label {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Nav ── */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 28px;
+  }
+
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .btn-back:hover { color: var(--text); }
+  .btn-back:disabled { opacity: 0.2; cursor: default; }
+
+  .btn-next {
+    background: var(--accent);
+    border: none;
+    color: #0d0d0f;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 12px 28px;
+    border-radius: 100px;
+    transition: all 0.2s ease;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .btn-next.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .btn-next.active:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px var(--accent-glow);
+  }
+
+  /* ── Transitions ── */
+  .card.slide-out-left {
+    animation: slideOutLeft 0.28s cubic-bezier(0.4,0,1,1) forwards;
+  }
+  .card.slide-out-right {
+    animation: slideOutRight 0.28s cubic-bezier(0.4,0,1,1) forwards;
+  }
+  .card.slide-in-right {
+    animation: slideInRight 0.32s cubic-bezier(0,0,0.2,1) forwards;
+  }
+  .card.slide-in-left {
+    animation: slideInLeft 0.32s cubic-bezier(0,0,0.2,1) forwards;
+  }
+
+  @keyframes slideOutLeft {
+    to { opacity: 0; transform: translateX(-32px); }
+  }
+  @keyframes slideOutRight {
+    to { opacity: 0; transform: translateX(32px); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(32px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-32px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Intro screen ── */
+  #intro-screen {
+    text-align: center;
+  }
+
+  #intro-screen .card {
+    padding: 56px 40px;
+  }
+
+  .intro-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .intro-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 8vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .intro-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .intro-sub {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .intro-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .meta-label {
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .meta-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+  }
+
+  .btn-start {
+    background: var(--accent);
+    border: none;
+    color: #0d0d0f;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 15px 40px;
+    border-radius: 100px;
+    transition: all 0.25s ease;
+    display: inline-block;
+  }
+
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px var(--accent-glow);
+  }
+
+  /* ── Results ── */
+  #results-screen {
+    text-align: center;
+  }
+
+  #results-screen .card {
+    padding: 56px 40px 48px;
+  }
+
+  .results-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    display: block;
+  }
+
+  .score-ring-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 28px;
+  }
+
+  .score-ring {
+    transform: rotate(-90deg);
+    width: 140px;
+    height: 140px;
+  }
+
+  .score-ring-track {
+    fill: none;
+    stroke: var(--progress-track);
+    stroke-width: 4;
+  }
+
+  .score-ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 340;
+    stroke-dashoffset: 340;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  }
+
+  .score-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .score-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .score-pts {
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .result-category {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+
+  .result-message {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.75;
+    max-width: 400px;
+    margin: 0 auto 36px;
+  }
+
+  .result-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .stat-block {
+    flex: 1;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .stat-block + .stat-block {
+    border-left: 1px solid var(--border);
+  }
+
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.63rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .btn-retake {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 12px 28px;
+    border-radius: 100px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-retake:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Category colors */
+  .cat-exceptional { color: #c9a96e; }
+  .cat-strong { color: #7ec8a4; }
+  .cat-explore { color: #89b4cc; }
+  .cat-differences { color: #d4a96a; }
+  .cat-incompatible { color: #e07070; }
+
+  /* Fade in for results */
+  .fade-in {
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hidden */
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .card { padding: 32px 24px 28px; }
+    #intro-screen .card { padding: 40px 24px; }
+    #results-screen .card { padding: 40px 24px 36px; }
+    .header-bar { margin-bottom: 24px; }
+    .progress-wrap { margin-bottom: 28px; }
+    .nav-row { margin-top: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="quiz-wrapper">
+
+  <!-- Intro -->
+  <div id="intro-screen">
+    <div class="card fade-in">
+      <span class="intro-eyebrow">Values &amp; Compatibility</span>
+      <h1 class="intro-title">Are you an<br><em>Exceptional</em><br>Match?</h1>
+      <p class="intro-sub">58 thoughtful questions across values, communication, ambition, and respect. Honest answers only.</p>
+      <div class="intro-meta">
+        <div class="meta-item">
+          <span class="meta-value">58</span>
+          <span class="meta-label">Questions</span>
+        </div>
+        <div class="meta-divider"></div>
+        <div class="meta-item">
+          <span class="meta-value">~8</span>
+          <span class="meta-label">Minutes</span>
+        </div>
+        <div class="meta-divider"></div>
+        <div class="meta-item">
+          <span class="meta-value">0</span>
+          <span class="meta-label">Data Stored</span>
+        </div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Begin Quiz</button>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quiz-screen" class="hidden">
+    <div class="header-bar">
+      <span class="brand">Compatibility</span>
+      <span class="question-counter" id="q-counter">1 / 58</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="card" id="question-card">
+      <div class="question-section">
+        <span class="question-tag" id="q-tag">Question 1</span>
+        <p class="question-text" id="q-text"></p>
+      </div>
+      <div class="options" id="options-wrap"></div>
+      <div class="nav-row">
+        <button class="btn-back" id="btn-back" onclick="goBack()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Back
+        </button>
+        <button class="btn-next" id="btn-next" onclick="goNext()">
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-screen" class="hidden">
+    <div class="card">
+      <span class="results-eyebrow">Your Results</span>
+      <div class="score-ring-wrap">
+        <svg class="score-ring" viewBox="0 0 140 140">
+          <circle class="score-ring-track" cx="70" cy="70" r="54"/>
+          <circle class="score-ring-fill" id="ring-fill" cx="70" cy="70" r="54"/>
+        </svg>
+        <div class="score-inner">
+          <span class="score-pct" id="res-pct">0%</span>
+          <span class="score-pts" id="res-pts">0 pts</span>
+        </div>
+      </div>
+      <h2 class="result-category" id="res-category"></h2>
+      <p class="result-message" id="res-message"></p>
+      <div class="result-stats">
+        <div class="stat-block">
+          <span class="stat-num" id="stat-score">—</span>
+          <span class="stat-label">Score</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" id="stat-max">116</span>
+          <span class="stat-label">Maximum</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-num" id="stat-pct">—</span>
+          <span class="stat-label">Percentile</span>
+        </div>
+      </div>
+      <button class="btn-retake" onclick="retake()">Retake Quiz</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  "Do you currently have a long-term goal you're actively working toward?",
+  "Would you sacrifice short-term comfort for a better future?",
+  "Do you enjoy learning new things even when nobody requires you to?",
+  "Do you think personal growth should continue throughout life?",
+  "Have you ever changed a strongly held opinion after learning new information?",
+  "Would you relocate for a good career opportunity?",
+  "Do you consider yourself ambitious?",
+  "If you became financially free tomorrow, would you still want to work on something meaningful?",
+  "Would you be comfortable with a partner who is highly career-focused?",
+  "Would you rather hear an uncomfortable truth than a comforting lie?",
+  "Can you admit when you're wrong?",
+  "Do you usually address problems directly rather than avoiding them?",
+  "Do you think silent treatment is an unhealthy way to handle conflict?",
+  "Have you ever apologized even when it hurt your ego?",
+  "Do you actively work on your flaws?",
+  "Do you believe understanding someone is more important than winning an argument?",
+  "Can you be genuinely happy while single?",
+  "Do you enjoy spending time alone?",
+  "Do you believe emotional cheating is cheating?",
+  "Have you ever cheated on a partner?",
+  "Do you think trust should be earned?",
+  "Do you think loyalty matters more than popularity?",
+  "Would you be comfortable in an open relationship?",
+  "Do you think a successful relationship requires more than just love?",
+  "Would you stay in a relationship with someone you no longer respected?",
+  "If both partners work full-time, should household responsibilities be shared?",
+  "Would you support your daughter prioritizing her career over marriage?",
+  "Would it bother you if your partner earned significantly more than you?",
+  "Do you think men and women are equally capable of leadership?",
+  "Do you think respect should be mutual regardless of gender?",
+  "If a woman is more ambitious than her partner, do you think that's completely acceptable?",
+  "Do you think traditional gender roles should always be followed?",
+  "If a friend made a sexist joke, would you call them out?",
+  "Would you speak up if someone was being treated unfairly?",
+  "Would you risk being disliked to defend something you believe is right?",
+  "If your entire friend group disagreed with you, could you still stand by your beliefs?",
+  "Have you ever stood up for someone who couldn't defend themselves?",
+  "If your family was wrong in a disagreement, could you admit it?",
+  "If your partner was right and your friends were wrong, would you support your partner?",
+  "Would you be comfortable dating someone with different religious beliefs?",
+  "Do you respect people's right to beliefs you disagree with?",
+  "Do you enjoy discussing controversial topics respectfully?",
+  "Do you think it's possible to be a good person without religion?",
+  "Do you think changing your mind can be a sign of strength?",
+  "If you're interested in doing something with a partner and they seem hesitant, would you wait for clearer enthusiasm before bringing it up again?",
+  "Do you think being in a relationship automatically makes some things expected rather than discussed?",
+  "If a partner says \"I'm not sure\" about something, would you treat that as a no until they become comfortable?",
+  "Do you think good intentions are enough even if someone feels uncomfortable afterward?",
+  "If someone changes their mind about something they previously agreed to, should that be respected?",
+  "Should people check in with their partner about comfort levels instead of assuming?",
+  "If a partner avoids answering a question, do you usually assume they're uncomfortable discussing it?",
+  "Is respecting someone's boundaries more important than avoiding awkward conversations?",
+  "Do you think people should be able to say no without having to justify themselves?",
+  "If someone isn't comfortable with something that seems harmless to you, should their discomfort still be respected?",
+  "Do you think being close to someone gives you the right to expect access to all parts of their life?",
+  "Should privacy continue to exist in healthy relationships?",
+  "If a partner repeatedly seems uncomfortable with a topic, should you stop bringing it up?",
+  "Do you believe \"not saying no\" and \"wanting something\" are the same thing?"
+];
+
+// 1-indexed
+const REVERSE = new Set([20, 23, 25, 28, 32, 46, 48, 55, 58]);
+const MAX_SCORE = 116;
+const OPTIONS = ['Yes', 'Depends', 'No'];
+
+const RESULTS = [
+  { min: 100, max: 116, cat: 'Exceptional Match', cls: 'cat-exceptional', msg: 'Your values align remarkably well. You share a foundation of honesty, respect, mutual growth, and genuine care for each other\'s autonomy. This kind of compatibility is rare — the kind that makes partnership feel like a collaboration rather than a compromise.' },
+  { min: 85,  max: 99,  cat: 'Strong Match',      cls: 'cat-strong',      msg: 'You share most of the values that make relationships thrive. There are minor differences worth exploring, but nothing that thoughtful communication can\'t navigate. A strong foundation to build something meaningful on.' },
+  { min: 70,  max: 84,  cat: 'Worth Exploring',   cls: 'cat-explore',     msg: 'There\'s genuine compatibility here, but also meaningful differences in how you see the world. The relationship could work with open conversation and mutual willingness to understand — not just be understood.' },
+  { min: 55,  max: 69,  cat: 'Significant Differences', cls: 'cat-differences', msg: 'You diverge on several important values. Not impossible, but you\'d both need to be honest about what you\'re willing to navigate — and what you\'re not. Clarity now saves heartbreak later.' },
+  { min: 0,   max: 54,  cat: 'Probably Not Compatible', cls: 'cat-incompatible', msg: 'The core values that shape how you live, love, and treat people seem quite different. Sometimes that gap is too wide to bridge without one person losing themselves in the process.' }
+];
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startQuiz() {
+  document.getElementById('intro-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  renderQuestion(0);
+}
+
+function renderQuestion(index, direction = 'right') {
+  current = index;
+  const card = document.getElementById('question-card');
+
+  // Update counter and progress
+  document.getElementById('q-counter').textContent = `${index + 1} / ${QUESTIONS.length}`;
+  document.getElementById('progress-fill').style.width = `${((index) / QUESTIONS.length) * 100}%`;
+  document.getElementById('q-tag').textContent = `Question ${index + 1}`;
+  document.getElementById('q-text').textContent = QUESTIONS[index];
+
+  // Back button
+  const backBtn = document.getElementById('btn-back');
+  backBtn.disabled = index === 0;
+
+  // Render options
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  OPTIONS.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    if (answers[index] === i) btn.classList.add('selected');
+    btn.innerHTML = `<span class="option-dot"></span><span class="option-label">${label}</span>`;
+    btn.addEventListener('click', () => selectOption(i));
+    wrap.appendChild(btn);
+  });
+
+  updateNextBtn();
+
+  // Animate in
+  card.classList.remove('slide-in-right', 'slide-in-left', 'slide-out-left', 'slide-out-right');
+  void card.offsetWidth;
+  card.classList.add(direction === 'right' ? 'slide-in-right' : 'slide-in-left');
+}
+
+function selectOption(optionIndex) {
+  answers[current] = optionIndex;
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === optionIndex);
+  });
+  updateNextBtn();
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById('btn-next');
+  const hasAnswer = answers[current] !== null;
+  btn.classList.toggle('active', hasAnswer);
+  btn.textContent = current === QUESTIONS.length - 1 ? 'See Results' : 'Continue';
+}
+
+function goNext() {
+  if (answers[current] === null) return;
+
+  if (current === QUESTIONS.length - 1) {
+    showResults();
+    return;
+  }
+
+  const card = document.getElementById('question-card');
+  card.classList.remove('slide-in-right', 'slide-in-left');
+  void card.offsetWidth;
+  card.classList.add('slide-out-left');
+  setTimeout(() => renderQuestion(current + 1, 'right'), 260);
+}
+
+function goBack() {
+  if (current === 0) return;
+  const card = document.getElementById('question-card');
+  card.classList.remove('slide-in-right', 'slide-in-left');
+  void card.offsetWidth;
+  card.classList.add('slide-out-right');
+  setTimeout(() => renderQuestion(current - 1, 'left'), 260);
+}
+
+function computeScore() {
+  let total = 0;
+  answers.forEach((ans, i) => {
+    if (ans === null) return;
+    const qNum = i + 1;
+    const reversed = REVERSE.has(qNum);
+    if (reversed) {
+      if (ans === 0) total += 0;      // Yes = 0
+      else if (ans === 1) total += 1; // Depends = 1
+      else total += 2;                // No = 2
+    } else {
+      if (ans === 0) total += 2;      // Yes = 2
+      else if (ans === 1) total += 1; // Depends = 1
+      else total += 0;                // No = 0
+    }
+  });
+  return total;
+}
+
+function showResults() {
+  const score = computeScore();
+  const pct = Math.round((score / MAX_SCORE) * 100);
+  const result = RESULTS.find(r => score >= r.min && score <= r.max);
+
+  document.getElementById('quiz-screen').classList.add('hidden');
+  const resScreen = document.getElementById('results-screen');
+  resScreen.classList.remove('hidden');
+
+  // Populate
+  document.getElementById('res-pct').textContent = `${pct}%`;
+  document.getElementById('res-pts').textContent = `${score} pts`;
+  document.getElementById('res-category').textContent = result.cat;
+  document.getElementById('res-category').className = `result-category ${result.cls}`;
+  document.getElementById('res-message').textContent = result.msg;
+  document.getElementById('stat-score').textContent = score;
+  document.getElementById('stat-pct').textContent = `${pct}%`;
+
+  // Animate ring
+  const circumference = 2 * Math.PI * 54; // ~339.3
+  const offset = circumference * (1 - pct / 100);
+  const ring = document.getElementById('ring-fill');
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ring.style.strokeDashoffset = offset;
+    });
+  });
+
+  // Color ring by result
+  const colorMap = {
+    'cat-exceptional': '#c9a96e',
+    'cat-strong': '#7ec8a4',
+    'cat-explore': '#89b4cc',
+    'cat-differences': '#d4a96a',
+    'cat-incompatible': '#e07070'
+  };
+  ring.style.stroke = colorMap[result.cls] || '#c9a96e';
+  document.getElementById('score-pct') && (document.getElementById('score-pct').style.color = colorMap[result.cls]);
+}
+
+function retake() {
+  answers = new Array(QUESTIONS.length).fill(null);
+  current = 0;
+  document.getElementById('results-screen').classList.add('hidden');
+  document.getElementById('intro-screen').classList.remove('hidden');
+  // Reset ring
+  const ring = document.getElementById('ring-fill');
+  ring.style.strokeDashoffset = ring.style.strokeDasharray;
+}
+</script>
+</body>
+</html>
